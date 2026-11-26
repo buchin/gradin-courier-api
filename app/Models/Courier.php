@@ -59,7 +59,8 @@ class Courier extends Model
 
         return $query->where(function (Builder $q) use ($terms): void {
             foreach ($terms as $term) {
-                $q->whereRaw('LOWER(name) LIKE ?', ['%'.mb_strtolower($term).'%']);
+                $escaped = str_replace(['!', '%', '_'], ['!!', '!%', '!_'], mb_strtolower($term));
+                $q->whereRaw("LOWER(name) LIKE ? ESCAPE '!'", ['%'.$escaped.'%']);
             }
         });
     }

@@ -76,6 +76,24 @@ class CourierApiTest extends TestCase
             ->assertJsonPath('data.0.name', 'Budiono Hadi Agung');
     }
 
+    public function test_index_escapes_sql_wildcard_characters_in_search(): void
+    {
+        Courier::factory()->create(['name' => 'Budiono Hadi Agung']);
+        Courier::factory()->create(['name' => 'AndiXWijaya']);
+        Courier::factory()->create(['name' => 'Andi_Wijaya']);
+        Courier::factory()->create(['name' => 'Promo 50% Courier']);
+
+        $this->getJson('/api/couriers?search='.urlencode('%'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Promo 50% Courier');
+
+        $this->getJson('/api/couriers?search='.urlencode('Andi_Wijaya'))
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Andi_Wijaya');
+    }
+
     public function test_index_filters_by_multiple_levels(): void
     {
         Courier::factory()->create(['name' => 'Level 1 Courier', 'level' => 1]);
